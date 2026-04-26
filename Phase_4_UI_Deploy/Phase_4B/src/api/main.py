@@ -15,9 +15,20 @@ query_cache = {}
 def get_cache_key(query: str) -> str:
     return hashlib.md5(query.lower().strip().encode()).hexdigest()
 
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 
 app = FastAPI(title="AI Trip Planner API")
+
+# Enable CORS for Vercel deployment
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Mount static files
