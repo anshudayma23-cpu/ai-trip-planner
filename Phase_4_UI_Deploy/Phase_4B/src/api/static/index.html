@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanderlust AI | Your Interactive Travel Concierge</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        :root {
+            --primary: #f43f5e;
+            --secondary: #8b5cf6;
+            --accent: #0ea5e9;
+            --bg: #020617;
+            --card-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            cursor: none;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Animated Blobs */
+        .blob {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: linear-gradient(var(--primary), var(--secondary));
+            filter: blur(120px);
+            border-radius: 50%;
+            z-index: -1;
+            opacity: 0.15;
+            animation: move 25s infinite alternate;
+        }
+
+        @keyframes move {
+            from { transform: translate(-20%, -20%); }
+            to { transform: translate(60%, 60%); }
+        }
+
+        /* Custom Cursor */
+        #cursor-glow {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            transform: translate(-50%, -50%);
+        }
+
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px white;
+        }
+
+        nav {
+            padding: 1.5rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #fb7185, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero {
+            padding: 80px 10% 40px;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-size: 4rem;
+            margin-bottom: 1.2rem;
+            line-height: 1;
+            letter-spacing: -2px;
+        }
+
+        /* Search Card */
+        .search-container {
+            perspective: 1000px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .search-box {
+            background: var(--card-bg);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            border-radius: 2.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            transition: transform 0.1s ease-out;
+            transform-style: preserve-3d;
+        }
+
+        textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1.3rem;
+            resize: none;
+            outline: none;
+            min-height: 80px;
+        }
+
+        .search-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1.5rem;
+            border-top: 1px solid var(--glass-border);
+            padding-top: 1.2rem;
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.8rem 2.5rem;
+            border-radius: 1.2rem;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: none;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 20px rgba(244, 63, 94, 0.3);
+        }
+
+        /* Agents */
+        .agents-panel {
+            display: none;
+            margin: 3rem auto;
+            max-width: 900px;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+
+        .agent-pill {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 0.8rem 1.4rem;
+            border-radius: 4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            opacity: 0.4;
+            transition: 0.5s;
+        }
+
+        .agent-pill.active {
+            opacity: 1;
+            border-color: var(--accent);
+            background: rgba(14, 165, 233, 0.15);
+            transform: scale(1.05);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #334155;
+        }
+
+        .active .dot {
+            background: var(--accent);
+            box-shadow: 0 0 12px var(--accent);
+            animation: pulse 1s infinite;
+        }
+
+        .status-text {
+            font-family: monospace;
+            color: var(--accent);
+            font-size: 0.9rem;
+        }
+
+        /* --- THE RESULTS OVERHAUL --- */
+        .results-section {
+            padding: 60px 5%;
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .itinerary-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .itinerary-header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .itinerary-content {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+        }
+
+        /* Style each Day as a separate card */
+        .day-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2.5rem;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        .day-section:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.5);
+            transform: translateY(-5px);
+        }
+
+        .day-section h2 {
+            font-size: 2.2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: var(--secondary);
+        }
+
+        .day-section h2::before {
+            content: '📍';
+            font-size: 1.5rem;
+        }
+
+        .day-section ul {
+            list-style: none;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .day-section li {
+            padding: 1.5rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 1.5rem;
+            border-left: 4px solid var(--accent);
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+
+        .day-section li strong {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        /* Budget Badge */
+        .cost-badge {
+            display: inline-block;
+            margin-top: 2rem;
+            background: linear-gradient(to right, rgba(14, 165, 233, 0.2), rgba(139, 92, 246, 0.2));
+            padding: 0.6rem 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+            font-weight: 700;
+            color: #fff;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="blob"></div>
+    <div id="cursor-glow"></div>
+    <div class="cursor-dot" id="cursor-dot"></div>
+
+    <nav>
+        <div class="logo">Wanderlust AI</div>
+        <div style="color: #64748b; font-weight: 600; font-size: 0.8rem; letter-spacing: 2px;">SWARM ENGINE v2.5</div>
+    </nav>
+
+    <section class="hero animate__animated animate__fadeIn">
+        <h2>Your Journey,<br><span style="background: linear-gradient(to right, #0ea5e9, #fb7185); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Redefined.</span></h2>
+        <p style="font-size: 1.2rem; color: #94a3b8; max-width: 600px; margin: 0 auto;">Enter your destination and constraints below. Our AI agents will handle the rest.</p>
+    </section>
+
+    <div class="search-container animate__animated animate__zoomIn">
+        <div class="search-box" id="searchCard">
+            <textarea id="query" placeholder="e.g. 5 days in Switzerland, skiing and chocolate, $1500 budget..."></textarea>
+            <div class="search-actions">
+                <div class="status-text" id="mainStatus">SYSTEM ONLINE</div>
+                <button id="planBtn">GENERATE TRIP</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="agents-panel" id="agentsPanel">
+        <div class="agent-pill" id="agent-orchestrator"><div class="dot"></div> Orchestrator</div>
+        <div class="agent-pill" id="agent-research"><div class="dot"></div> Researcher</div>
+        <div class="agent-pill" id="agent-logistics"><div class="dot"></div> Logistics</div>
+        <div class="agent-pill" id="agent-budget"><div class="dot"></div> Auditor</div>
+        <div class="agent-pill" id="agent-review"><div class="dot"></div> Critic</div>
+        <div class="agent-pill" id="agent-synthesizer"><div class="dot"></div> Writer</div>
+    </div>
+
+    <section class="results-section" id="resultsSection">
+        <div class="itinerary-header" id="itineraryHeader"></div>
+        <div id="itineraryContent" class="itinerary-content"></div>
+    </section>
+
+    <script>
+        const planBtn = document.getElementById('planBtn');
+        const queryInput = document.getElementById('query');
+        const mainStatus = document.getElementById('mainStatus');
+        const agentsPanel = document.getElementById('agentsPanel');
+        const resultsSection = document.getElementById('resultsSection');
+        const itineraryContent = document.getElementById('itineraryContent');
+        const itineraryHeader = document.getElementById('itineraryHeader');
+        const searchCard = document.getElementById('searchCard');
+
+        // Mouse Interactivity
+        const glow = document.getElementById('cursor-glow');
+        const dot = document.getElementById('cursor-dot');
+        document.addEventListener('mousemove', (e) => {
+            glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px';
+            dot.style.left = e.clientX + 'px'; dot.style.top = e.clientY + 'px';
+            const xAxis = (window.innerWidth / 2 - e.pageX) / 30;
+            const yAxis = (window.innerHeight / 2 - e.pageY) / 30;
+            searchCard.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+        });
+
+        function typeStatus(text) {
+            mainStatus.textContent = `> ${text.toUpperCase()}`;
+        }
+
+        planBtn.addEventListener('click', () => {
+            const query = queryInput.value.trim();
+            if (!query) return;
+
+            planBtn.disabled = true;
+            planBtn.textContent = 'WORKING...';
+            agentsPanel.style.display = 'flex';
+            resultsSection.style.display = 'none';
+            
+            // Reset all agent pills
+            ['orchestrator','research','logistics','budget','review','synthesizer'].forEach(a => {
+                document.getElementById(`agent-${a}`).classList.remove('active');
+            });
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const ws = new WebSocket(`${protocol}//${window.location.host}/ws/plan`);
+
+            // Safety timeout — if nothing happens in 120s, reset UI
+            const timeout = setTimeout(() => {
+                typeStatus('TIMEOUT — Please try again');
+                resetBtn();
+                ws.close();
+            }, 120000);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ query }));
+                typeStatus('CONNECTING TO AI SWARM...');
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'status') {
+                    const el = document.getElementById(`agent-${data.node}`);
+                    if (el) el.classList.add('active');
+                    typeStatus(data.message || data.status);
+                } else if (data.type === 'final') {
+                    clearTimeout(timeout);
+                    confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                    formatAndDisplayResult(data.itinerary);
+                    ws.close();
+                } else if (data.type === 'error') {
+                    clearTimeout(timeout);
+                    typeStatus('ERROR: ' + data.message);
+                    resetBtn();
+                }
+            };
+
+            ws.onerror = () => {
+                clearTimeout(timeout);
+                typeStatus('CONNECTION ERROR — Is the server running?');
+                resetBtn();
+            };
+
+            ws.onclose = () => {
+                clearTimeout(timeout);
+                resetBtn();
+            };
+        });
+
+        function resetBtn() {
+            planBtn.disabled = false;
+            planBtn.textContent = 'GENERATE TRIP';
+        }
+
+        function formatAndDisplayResult(markdown) {
+            resultsSection.style.display = 'block';
+            
+            // Render markdown using the reliable marked.js library
+            const rawHtml = marked.parse(markdown);
+            
+            // Wrap it in our styled container
+            itineraryContent.innerHTML = `
+                <div class="day-section animate__animated animate__fadeInUp markdown-body">
+                    ${rawHtml}
+                </div>
+            `;
+            
+            // Clear the old header logic since marked handles the h1
+            itineraryHeader.innerHTML = '';
+            
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+            planBtn.disabled = false;
+            planBtn.textContent = 'GENERATE TRIP';
+            typeStatus('MISSION COMPLETE');
+        }
+    </script>
+    <style>
+        /* Styles for the marked.js generated content */
+        .markdown-body {
+            color: #f8fafc;
+        }
+        .markdown-body h1 {
+            font-size: 3.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .markdown-body h2 {
+            font-size: 2.2rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .markdown-body h2::before {
+            content: '📍';
+            font-size: 1.5rem;
+        }
+        .markdown-body h3 {
+            color: var(--accent);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .markdown-body ul {
+            list-style: none;
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .markdown-body li {
+            padding: 1.2rem;
+            background: rgba(255,255,255,0.02);
+            border-radius: 1rem;
+            border-left: 4px solid var(--accent);
+            line-height: 1.6;
+        }
+        .markdown-body strong {
+            color: var(--accent);
+        }
+        .markdown-body p {
+            margin-bottom: 1rem;
+            color: #cbd5e1;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+    </style>
+</body>
+</html>

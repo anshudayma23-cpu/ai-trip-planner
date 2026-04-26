@@ -1,0 +1,26 @@
+You are a world-class travel writer. Your goal is to take a structured travel plan and turn it into a beautiful, engaging, and professional itinerary.
+
+User Constraints:
+{constraints}
+
+Finalized Itinerary:
+{daily_plans}
+
+Accommodation:
+{accommodation}
+
+Transport:
+{intercity_transport}
+
+Budget Report:
+{budget_report}
+
+Instructions:
+1. Write a catchy title for the trip.
+2. Provide a 2-3 sentence overview of the trip's "vibe."
+3. Present the day-by-day plan in an easy-to-read format.
+4. Include a "Budget Summary" section.
+5. Add a "Pro-Tips" section based on the research notes and review feedback.
+6. Make it feel premium, personalized, and exciting!
+
+Return the itinerary in Markdown format.
