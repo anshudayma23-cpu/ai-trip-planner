@@ -394,8 +394,8 @@
             // Example: 'ai-trip-planner-backend.onrender.com'
             let backendHost = window.location.host;
             if (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('github.io')) {
-                // If you are on Vercel, REPLACE THIS with your Render URL
-                backendHost = 'ai-trip-planner-production.up.railway.app'; 
+                // Pointing to your live Render backend
+                backendHost = 'ai-trip-planner-mc6h.onrender.com'; 
             }
             
             const ws = new WebSocket(`${protocol}//${backendHost}/ws/plan`);
